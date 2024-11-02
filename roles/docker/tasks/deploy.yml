@@ -1,0 +1,35 @@
+---
+- name: Ensure docker-compose is installed
+  ansible.builtin.package:
+    name: docker-compose
+    state: present
+
+- name: Create docker-compose file from template
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_service.compose_file_path }}"
+  loop: "{{ docker_services }}"
+  loop_control:
+    loop_var: docker_service
+
+- name: Check if the service is up-to-date
+  command: docker-compose -f {{ docker_service.compose_file_path }} ps
+  register: compose_ps_result
+  changed_when: false
+  loop: "{{ docker_services }}"
+  loop_control:
+    loop_var: docker_service
+
+- name: Pull latest images
+  command: docker-compose -f {{ docker_service.compose_file_path }} pull
+  when: compose_ps_result.stdout.find("Exit") != -1
+  loop: "{{ docker_services }}"
+  loop_control:
+    loop_var: docker_service
+
+- name: Deploy the services if not up-to-date
+  command: docker-compose -f {{ docker_service.compose_file_path }} up -d
+  when: compose_ps_result.stdout.find("Exit") != -1
+  loop: "{{ docker_services }}"
+  loop_control:
+    loop_var: docker_service

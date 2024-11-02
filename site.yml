@@ -1,0 +1,29 @@
+# MASTER PLAYBOOK
+---
+- hosts: all
+  become: yes
+  roles:
+    - system
+
+# If the host has containers assigned, it must then have docker installed
+- hosts: all
+  roles:
+    - role: docker
+      tasks_from: install
+      when: containers is defined and containers | length > 0
+
+- hosts: all
+  vars:
+    war_files:
+      server1:
+      - file1.war
+      - file2.war
+      server2:
+      - file1.war
+      - file2.war
+      - file3.war
+  tasks:
+    - name: Loop over subelements of the dictionary
+      debug:
+        msg: "Key={{ item.0.key }} value={{ item.1 }}"
+      loop: "{{ war_files | dict2items | subelements('value') }}"

@@ -1,0 +1,33 @@
+containers: [ ]
+tz: "Europe/Madrid"
+
+docker_volumes_path: "/var/docker_volumes"
+docker_config_path: "/srv/docker"
+python_system_venvs_path: "/srv/python_venvs"
+
+
+
+docker_services:
+  - name: "mongodb"
+    image: "mongo"
+    tag: "8-noble"
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb_volume:/data/db"
+    env:
+      MONGODB_INITDB_ROOT_USERNAME: "{{ mongodb_user }}"
+      MONGODB_INITDB_ROOT_PASSWORD: "{{ mongodb_password }}"
+
+
+docker_services_mongo:
+  - name: "mongodb"
+    image: "mongo"
+    tag: "latest"
+    ports:
+      - "80:80"
+    volumes:
+      - "/data:/data"
+    env:
+      ENV_VAR1: "value1"
+    compose_file_path: "/path/to/docker-compose.yml"

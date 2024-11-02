@@ -1,0 +1,70 @@
+---
+- name: Create user
+  user:
+    name: "{{ admin_user }}"
+    shell: /bin/bash
+    state: present
+    home: "/home/{{ admin_user }}"
+
+- name: allow ansible user to have passwordless sudo
+  lineinfile:
+    path: "/etc/sudoers.d/{{ admin_user }}"
+    line: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+    # Older systems require this to be 0440 or sudo breaks.
+    mode: 0440
+    create: yes
+    validate: /usr/sbin/visudo -cf %s
+
+# This must be after setting up passwordless sudo and the authorized_keys.
+- name: remove admin password
+  user:
+    name: "{{ admin_user }}"
+    password: "*"
+
+- name: Add SSH keys for the user
+  authorized_key:
+    user: "{{ admin_user }}"
+    key: "{{ item }}"
+    state: present
+  with_items: "{{ admin_keys }}"
+
+- name: User groups
+  group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - software
+    - docker
+
+- name: Admin groups
+  user:
+    name: "{{ admin_user }}"
+    groups:
+      - sudo
+      - software
+      - docker
+    append: yes
+
+- name: Symbolic link for tmp
+  ansible.builtin.file:
+    dest: "/home/{{ admin_user }}/tmp"
+    src: /tmp
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    state: link
+
+- name: Create symbolic link for opt
+  ansible.builtin.file:
+    dest: "/home/{{ admin_user }}/software"
+    src: /opt
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    state: link
+
+- name: Configure /opt directory
+  ansible.builtin.file:
+    path: /opt
+    state: directory
+    owner: root
+    group: software
+    mode: "02775"

@@ -1,0 +1,32 @@
+- name: Enable universe repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+    - "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates universe"
+    - "deb http://security.ubuntu.com/ubuntu {{ ansible_distribution_release }}-security universe"
+    - "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-backports main restricted universe"
+  when: ansible_distribution == "Ubuntu" and ansible_architecture == "x86_64"
+
+- name: Update packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Install essential packages
+  package:
+    name: "{{ packages }}"
+    state: latest
+
+- name: Install essential packages only available on x86_64
+  package:
+    name: "{{ packages_x64 }}"
+    state: latest
+  when: ansible_architecture == "x86_64"
+
+- name: Remove useless packages
+  ansible.builtin.apt:
+    autoremove: yes
+    autoclean: yes
+  tags: test

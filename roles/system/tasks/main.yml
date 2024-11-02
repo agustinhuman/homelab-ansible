@@ -1,0 +1,20 @@
+---
+- block:
+  - name: Admin user
+    import_tasks:
+      file: admin_user.yml
+  vars:
+    admin_user: "{{ username }}"
+    admin_keys: "{{ admin_pub_keys }}"
+  tags:
+    - users
+
+- name: Packages
+  include_tasks:
+    file: packages.yml
+    apply:
+      tags:
+        - package_management
+  tags:
+    - always
+

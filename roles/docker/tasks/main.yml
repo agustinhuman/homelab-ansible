@@ -1,0 +1,10 @@
+---
+- name: Docker installed
+  ansible.builtin.include_tasks: install.yml
+  args:
+    apply:
+      tags:
+        - docker-install
+  tags:
+    - always
+

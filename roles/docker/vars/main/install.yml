@@ -1,0 +1,6 @@
+arch_mapping:  # Map ansible architecture {{ ansible_architecture }} names to Docker's architecture ones
+  x86_64: amd64
+  aarch64: arm64
+
+#Docker
+docker_venv: "{{ python_system_venvs_path }}/docker"
