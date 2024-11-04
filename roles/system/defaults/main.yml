@@ -17,11 +17,13 @@ packages:
   - iotop
   - cowsay
   - sl
+  - rsync
   - lolcat
   - speedtest-cli
   - python3-virtualenv
   - python3-setuptools
   - python3-pip
+  - nfs-common
 
 
 # Packages that are only installed if the host is x64

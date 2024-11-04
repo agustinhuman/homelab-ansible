@@ -1,10 +1,20 @@
 ---
-- name: Docker installed
-  ansible.builtin.include_tasks: install.yml
-  args:
-    apply:
-      tags:
-        - docker-install
+# It expects the facts:
+# compose_name: docker_compose name
+# compose_definition:
+
+- name: docker
+  include_tasks: install.yml
+  when: containers is defined and containers | length > 0
   tags:
-    - always
+    - docker-install
+
+- name: Handle composes
+  include_tasks: compose.yml
+  vars:
+    compose_data: "{{ docker_services[compose_name] }}"
+  loop: "{{ containers }}"
+  loop_control:
+    loop_var: compose_name
+  when: "compose_name in docker_services"
 

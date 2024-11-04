@@ -8,11 +8,21 @@ services:
       - "{{ port }}"
       {% endfor %}
     volumes:
-      {% for volume in service.volumes %}
-      - "{{ volume }}"
+      {% for key, value in service.volumes.item() %}
+      - "{{ key }}:{{ value }}"
       {% endfor %}
     environment:
       {% for key, value in service.env.items() %}
-      - "{{ key }}={{ value }}"
+      - "{{ key }}:{{ value }}"
       {% endfor %}
+  {% endfor %}
+volumes:
+  {% for key, value in service.volumes.item() %}
+  {{ key }}:
+    name: {{ key }}
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ docker_volumes_path }}/{{ compose_name }}/{{ key }}"
   {% endfor %}

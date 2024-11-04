@@ -31,7 +31,6 @@
 - name: User groups
   group:
     name: "{{ item }}"
-    state: present
   loop:
     - software
     - docker
@@ -68,3 +67,25 @@
     owner: root
     group: software
     mode: "02775"
+
+
+- name: Ensure .ssh directory exists.
+  file:
+    dest: "/home/{{ admin_user }}/.ssh"
+    mode: 0700
+    owner: "{{ admin_user }}"
+    state: directory
+
+- name: Copy backup key
+  ansible.builtin.copy:
+    content: "{{ vault_nas_backup_key }}"
+    dest: "/home/{{ admin_user }}/.ssh/homelab_backup"
+    owner: "{{ admin_user }}"
+    mode: 0700
+
+- name: Add known hosts
+  ansible.builtin.copy:
+    content: "{{ known_hosts }}"
+    dest: "/home/{{ admin_user }}/.ssh/known_hosts"
+    owner: "{{ admin_user }}"
+    mode: 0600

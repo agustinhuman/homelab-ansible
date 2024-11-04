@@ -9,6 +9,16 @@
   tags:
     - users
 
+- block:
+  - name: Admin user
+    import_tasks:
+      file: admin_user.yml
+  vars:
+    admin_user: "{{ ansible_admin_username }}"
+    admin_keys: "{{ ansible_admin_pub_keys }}"
+  tags:
+    - users
+
 - name: Packages
   include_tasks:
     file: packages.yml

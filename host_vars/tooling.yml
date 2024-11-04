@@ -1,4 +1,26 @@
+native_services: []
+
+
+# MongoDB
+mongodb_tag: "7.0-ubuntu2204"
+mongodb_user: "mongo"
+mongodb_password: "{{ db_password | default('') }}"
+mongodb_volume_local_path: "{{ docker_volumes_path }}/mongodb"
+
+
 containers:
   - mongodb
 
-native_services: []
+docker_services:
+  mongodb:
+    - name: "mongodb"
+      image: "mongo"
+      tag: "8-noble"
+      ports:
+        - "27017:27017"
+      volumes:
+        mongodb_volume: "/data/db"
+      env:
+        MONGODB_INITDB_ROOT_USERNAME: "{{ mongodb_user }}"
+        MONGODB_INITDB_ROOT_PASSWORD: "{{ mongodb_password }}"
+
