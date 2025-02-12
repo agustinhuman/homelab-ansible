@@ -5,3 +5,7 @@
   loop: "{{ compose_data }}"
   loop_control:
     loop_var: docker_service
+
+- name: Deploy compose
+  become: yes
+  import_tasks: deploy.yml

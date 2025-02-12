@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Ansible Tasks File">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Ansible Tasks File" />
+              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/tasks" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="roles/docker/tasks/deploy.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="bakcup.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="roles/system/tasks/rsync.yml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>

@@ -1,0 +1,17 @@
+---
+
+- name: Synchronize missing volumes from NAS backup
+  ansible.builtin.include_role:
+    name: system
+    tasks_from: rsync
+  vars:
+    copy:
+      from: "{{ docker_volumes_path }}/{{ compose_name }}/"
+      to: "rsync://{{ nas.backup.user }}@{{ nas.host }}{{ nas.backup.share }}/docker/{{ compose_name }}"
+      user: "{{ nas.backup.user }}"
+      password: "{{ nas.backup.password }}"
+      compressed: "{{ true }}"
+  when: containers is defined and containers | length > 0
+  loop: "{{ containers }}"
+  loop_control:
+    loop_var: compose_name

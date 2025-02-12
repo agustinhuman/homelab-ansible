@@ -10,6 +10,8 @@ mongodb_volume_local_path: "{{ docker_volumes_path }}/mongodb"
 
 containers:
   - mongodb
+  - nexus
+  - mlflow
 
 docker_services:
   mongodb:
@@ -21,6 +23,23 @@ docker_services:
       volumes:
         mongodb_volume: "/data/db"
       env:
-        MONGODB_INITDB_ROOT_USERNAME: "{{ mongodb_user }}"
-        MONGODB_INITDB_ROOT_PASSWORD: "{{ mongodb_password }}"
-
+        MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_user }}"
+        MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_password }}"
+  nexus:
+    - name: "nexus"
+      image: "sonatype/nexus3"
+      tag: "3.77.1-alpine"
+      ports:
+        - "8081:8081"
+        - "8085:8085"
+      volumes:
+        nexus_data: "/nexus-data"
+  mlflow:
+    - name: "mlflow"
+      image: "bitnami/mlflow"
+      tag: "2.20.1"
+      ports:
+        - "8081:8081"
+        - "8085:8085"
+      volumes:
+        nexus_data: "/nexus-data"

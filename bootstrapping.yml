@@ -1,4 +1,3 @@
-# MASTER PLAYBOOK
 ---
 - hosts: all
   become: yes

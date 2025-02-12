@@ -1,0 +1,8 @@
+---
+- hosts: tooling
+  become: yes
+  tasks:
+    - name: include docker backup tasks
+      include_role:
+        name: docker
+        tasks_from: do_backup.yml

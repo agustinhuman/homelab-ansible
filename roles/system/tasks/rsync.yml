@@ -1,0 +1,106 @@
+# Synology don't offer rsync with key auth. Even when configuring it manually over the shell,
+# the rsync server will still ask for a passwork (even when key ssh works fine).
+# With these requirements and the limited functionality offered by synchronize module, I opted to use raw command
+# This playbook acts as an abstraction to this complexity. It expects the facts:
+#
+# copy: {
+#   from: path,
+#   to: path,
+#   volume: volume of the remote
+#   user: string,
+#   password: string
+#   compressed: if the backup is stored on the remote location as a tar.gz
+# }
+
+---
+
+# PREPARATION
+
+- name: Sets facts for rsync call Steep 1
+  ansible.builtin.set_fact:
+    is_backup: "{{ copy.to.startswith('rsync://') }}"
+    copy_from: "{{ copy.from | regex_replace('\\/$', '') }}"
+    copy_to: "{{ copy.to | regex_replace('\\/$', '') }}"
+
+- name: Sets facts for rsync call Steep 2
+  ansible.builtin.set_fact:
+    local_dir: "{{ is_backup | ternary(copy_from, copy_to) }}"
+    remote_dir: "{{ is_backup | ternary(copy_to, copy_from) }}"
+
+- name: Sets facts for rsync call Steep 3
+  ansible.builtin.set_fact:
+    tar_file: "/tmp/{{ local_dir | basename }}.tar.gz"
+    use_compression: "{{ copy.compressed | default(false) }}"
+    volume_path: "{{ copy.compressed | default(false) }}"
+
+- name: Create compressed archive if required
+  ansible.builtin.command:
+    cmd: "tar -czf {{ tar_file }} -C {{ local_dir }} ."
+  when: use_compression and is_backup
+
+
+# ACTUAL TRANSFER
+
+- name: Transfer case uncompressed
+  become: yes
+  ansible.builtin.shell: "/usr/bin/rsync --delay-updates -F --compress --archive --verbose --delete --rsh='/usr/bin/sshpass -p {{ copy.password }} ssh -o StrictHostKeyChecking=no -l {{ copy.user }}' --out-format='<<CHANGED>>%i %n%L' {{ copy_from }} {{ copy_to }}"
+  register: result
+  failed_when: not (result.rc == 0 or result.rc == 23)
+  when: not use_compression
+
+- name: Transfer case compressed upload
+  become: yes
+  ansible.builtin.shell: "/usr/bin/rsync --delay-updates -F --archive --verbose --delete --rsh='/usr/bin/sshpass -p {{ copy.password }} ssh -o StrictHostKeyChecking=no -l {{ copy.user }}' --out-format='<<CHANGED>>%i %n%L' {{ tar_file }} {{ copy_to }}/{{ tar_file | basename }}"
+  register: result
+  failed_when: not (result.rc == 0 or result.rc == 23)
+  when: use_compression and is_backup
+
+- name: Transfer case compressed download
+  become: yes
+  ansible.builtin.shell: "/usr/bin/rsync --delay-updates -F --archive --verbose --delete --rsh='/usr/bin/sshpass -p {{ copy.password }} ssh -o StrictHostKeyChecking=no -l {{ copy.user }}' --out-format='<<CHANGED>>%i %n%L' {{ remote_dir }}/{{ tar_file | basename }} {{ tar_file }}"
+  register: result
+  failed_when: not (result.rc == 0 or result.rc == 23)
+  when: use_compression and is_backup
+
+
+# BACKUP RESTORATION
+
+- name: Clear destination directory if restoring compressed backup
+  ansible.builtin.file:
+    path: "{{ local_dir }}"
+    state: absent
+  when: use_compression and not is_backup
+  delegate_to: localhost
+
+- name: Recreate destination directory after clearing
+  ansible.builtin.file:
+    path: "{{ local_dir }}"
+    state: directory
+  when: use_compression and not is_backup
+
+- name: Extract archive locally if restoring from compressed backup
+  ansible.builtin.command:
+    cmd: "tar -xzf {{ tar_file }} -C {{ local_dir }}"
+  when: use_compression and not is_backup
+  failed_when:
+    - result.rc != 0
+    - "'No such file or directory' not in extract_result.stderr"
+
+- name: Create destination directory if extraction failed due to missing directory
+  ansible.builtin.file:
+    path: "{{ local_dir }}"
+    state: directory
+  when: use_compression and not is_backup
+
+
+# CLEANUP
+
+- name: Clean up temporary files if compressed
+  ansible.builtin.file:
+    path: "{{ tar_file }}"
+    state: absent
+  when: use_compression
+
+- name: Clear fact so it fails if the next call have not defined all the facts
+  ansible.builtin.set_fact:
+    copy:

@@ -33,17 +33,20 @@
     loop_var: volume_name
 
 
-# Synology don't offer rsync with key auth. Even when configuring it manually over the shell,
-# the rsync server will still ask for a passwork (even when key ssh works fine).
-# With does requirements and the limited functionality offered by synchronize module, I opted to use raw command
 - name: Synchronize missing volumes from NAS backup
-  become: yes
-  ansible.builtin.shell: "/usr/bin/rsync --delay-updates -F --compress --archive --archive --verbose --delete --rsh='/usr/bin/sshpass -p {{ nas.backup.password }} ssh -o StrictHostKeyChecking=no -l {{ nas.backup.user }}' --out-format='<<CHANGED>>%i %n%L' rsync://{{ nas.backup.user }}@{{ nas.host }}:{{ nas.backup.share }}/docker/{{ compose_name }}/{{ item }} {{ docker_volumes_path }}/{{ compose_name }}/{{ item }}/"
+  ansible.builtin.include_role:
+    name: system
+    tasks_from: rsync
+  vars:
+    copy:
+      from: "rsync://{{ nas.backup.user }}@{{ nas.host }}{{ nas.backup.share }}/docker/{{ compose_name }}/{{ volume }}"
+      to: "{{ docker_volumes_path }}/{{ compose_name }}/{{ volume }}/"
+      user: "{{ nas.backup.user }}"
+      password: "{{ nas.backup.password }}"
+      compressed: !!str "true"
   when:
     - not volume_names.results[item_index].stat.exists
   loop: "{{ docker_service.volumes.keys() }}"
   loop_control:
     index_var: item_index
-    loop_var: item
-  register: result
-  failed_when: not (result.rc == 0 or result.rc == 23)
+    loop_var: volume

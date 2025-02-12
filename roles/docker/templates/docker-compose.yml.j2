@@ -1,28 +1,31 @@
-version: '3'
+#jinja2: lstrip_blocks: "true", trim_blocks: "false"
 services:
-  {% for service in docker_services %}
+  {% for service in compose_data %}
   {{ service.name }}:
     image: {{ service.image }}:{{ service.tag }}
     ports:
-      {% for port in service.ports %}
+    {% for port in service.ports %}
       - "{{ port }}"
-      {% endfor %}
+    {% endfor %}
     volumes:
-      {% for key, value in service.volumes.item() %}
+    {% for key, value in service.volumes.items() %}
       - "{{ key }}:{{ value }}"
       {% endfor %}
+    {% if service.env is defined %}
     environment:
-      {% for key, value in service.env.items() %}
-      - "{{ key }}:{{ value }}"
-      {% endfor %}
+    {% for key, value in service.env.items() %}
+      {{ key }}: "{{ value }}"
+    {% endfor %}
+  {% endif %}
   {% endfor %}
 volumes:
-  {% for key, value in service.volumes.item() %}
+  {% for service in compose_data %}
+  {% for key, value in service.volumes.items() %}
   {{ key }}:
-    name: {{ key }}
     driver: local
     driver_opts:
       type: none
       o: bind
       device: "{{ docker_volumes_path }}/{{ compose_name }}/{{ key }}"
+  {% endfor %}
   {% endfor %}

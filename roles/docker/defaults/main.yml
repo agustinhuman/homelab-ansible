@@ -13,7 +13,6 @@ docker_services_mongo:
     ports:
       - "80:80"
     volumes:
-      - "/data:/data"
+      - "/data": "/data"
     env:
       ENV_VAR1: "value1"
-    compose_file_path: "/path/to/docker-compose.yml"
