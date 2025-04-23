@@ -1,0 +1,29 @@
+---
+- name: Bootstrap a new node
+  hosts: "all"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  pre_tasks:
+    - name: Get number of hosts in inventory
+      set_fact:
+        num_hosts: "{{ ansible_play_hosts | length }}"
+
+    - name: Stop execution if more than one host
+      fail:
+        msg: "There are multiple hosts in the inventory. This playbook is designed to run on a single host only."
+      when: num_hosts|int > 1
+
+  tasks:
+    - name: Create ansible admin user
+      ansible.builtin.import_role:
+        name: common
+        tasks_from: user
+      vars:
+        admin_user: "{{ ansible_user }}"
+        admin_keys: "{{ ansible_user_pub_keys }}"
+
+    - name: IP changer
+      ansible.builtin.import_role:
+        name: common
+        tasks_from: network

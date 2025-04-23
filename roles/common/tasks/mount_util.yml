@@ -1,0 +1,14 @@
+# The backup NFS share is not mounted by default
+# It will be mounted when needed and unmounted after use
+# VARS do_mount
+# - mount: Name of the temporal_mount
+# - state: mounted | unmounted
+
+- name: Mount temporal NFS
+  ansible.builtin.mount:
+    path: "{{ nas[do_mount.mount].mount_point }}"
+    src: "{{ nas.host }}:{{ nas[do_mount.mount].share }}"
+    fstype: nfs
+    boot: false
+    opts: "{{ nas[do_mount.mount].options }}"
+    state: "{{ do_mount.state }}"

@@ -7,11 +7,16 @@ mongodb_user: "mongo"
 mongodb_password: "{{ db_password | default('') }}"
 mongodb_volume_local_path: "{{ docker_volumes_path }}/mongodb"
 
+persistent_network_mounts:
+  - homelab
+temporal_network_mounts:
+  - backup
 
 containers:
   - mongodb
   - nexus
   - mlflow
+  - uptimekuma
 
 docker_services:
   mongodb:
@@ -25,6 +30,14 @@ docker_services:
       env:
         MONGO_INITDB_ROOT_USERNAME: "{{ mongodb_user }}"
         MONGO_INITDB_ROOT_PASSWORD: "{{ mongodb_password }}"
+  uptimekuma:
+    - name: "uptimekuma"
+      image: "louislam/uptime-kuma"
+      tag: "1.23.15-alpine"
+      ports:
+        - "4030:3001"
+      volumes:
+        uptimekuma_data: "/app/data"
   nexus:
     - name: "nexus"
       image: "sonatype/nexus3"
@@ -34,12 +47,13 @@ docker_services:
         - "8085:8085"
       volumes:
         nexus_data: "/nexus-data"
+
   mlflow:
     - name: "mlflow"
       image: "bitnami/mlflow"
       tag: "2.20.1"
       ports:
-        - "8081:8081"
-        - "8085:8085"
+        - "8082:8081"
+        - "8084:8085"
       volumes:
         nexus_data: "/nexus-data"

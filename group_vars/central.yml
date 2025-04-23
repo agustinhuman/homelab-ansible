@@ -1,0 +1,15 @@
+---
+# Variables for central node
+
+# Docker configuration
+docker_install: true
+docker_compose_install: true
+docker_users:
+  - ansible
+
+# Container data directory
+docker_data_dir: /opt/docker/data
+
+additional_user:
+  - username: hypercube
+    uid: 1027

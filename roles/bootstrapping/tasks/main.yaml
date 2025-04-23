@@ -1,9 +1,0 @@
----
-- name: Create ansible admin user
-  include_tasks: credentials.yaml
-  tags:
-    - credentials
-- name: IP changer
-  include_tasks: ip_changer.yaml
-  tags:
-    - ip_changer

@@ -64,7 +64,7 @@
         groups: docker
         append: true
       loop:
-        - "{{ ansible_admin_username }}"
+        - "{{ ansible_user }}"
         - "{{ username }}"
 
     - name: Enable and start Docker services
@@ -79,7 +79,7 @@
       file:
         path: "{{ docker_venv }}"
         state: directory
-        owner: "{{ ansible_admin_username }}"
+        owner: "{{ ansible_user }}"
         group: software
         recurse: true
         mode: "02775"

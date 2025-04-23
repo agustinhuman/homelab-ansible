@@ -1,0 +1,24 @@
+---
+- name: Create user
+  user:
+    name: "{{ user.username }}"
+    shell: /bin/bash
+    password: "*"
+    state: present
+    uid: "{{ user.uid }}"
+    home: "/home/{{ user.username }}"
+
+- name: User groups
+  group:
+    name: "{{ item }}"
+  loop:
+    - software
+    - docker
+
+- name: Admin groups
+  user:
+    name: "{{ user.username }}"
+    groups:
+      - software
+      - docker
+    append: yes

@@ -1,17 +1,29 @@
+# This is not meant to be called in a standalone maner (note that we dismo unt the backup)
 ---
+- name: Backup docker volumes
+  tags: backup
+  block:
+  - name: Mount NFS backup share
+    ansible.builtin.include_role:
+      name: common
+      tasks_from: mount_util
+    vars:
+      do_mount:
+        mount: "backups"
+        state: "mounted"
 
-- name: Synchronize missing volumes from NAS backup
-  ansible.builtin.include_role:
-    name: system
-    tasks_from: rsync
-  vars:
-    copy:
-      from: "{{ docker_volumes_path }}/{{ compose_name }}/"
-      to: "rsync://{{ nas.backup.user }}@{{ nas.host }}{{ nas.backup.share }}/docker/{{ compose_name }}"
-      user: "{{ nas.backup.user }}"
-      password: "{{ nas.backup.password }}"
-      compressed: "{{ true }}"
-  when: containers is defined and containers | length > 0
-  loop: "{{ containers }}"
-  loop_control:
-    loop_var: compose_name
+  - name: Do backup
+    ansible.posix.synchronize:
+      src: "{{ docker_volumes_path }}/"
+      dest: "{{ nas.backups.mount_point }}/docker/"
+    delegate_to: "{{ inventory_hostname }}"
+
+  always:
+  - name: Mount NFS backup share
+    ansible.builtin.include_role:
+      name: common
+      tasks_from: mount_util
+    vars:
+      do_mount:
+        mount: "backups"
+        state: "unmounted"

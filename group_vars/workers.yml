@@ -1,0 +1,20 @@
+---
+# Variables for worker nodes
+
+# Worker node specific settings
+worker_node: true
+
+# Resource monitoring
+node_exporter_install: true
+node_exporter_port: 9100
+
+
+# Backup configuration
+backup_enabled: true
+backup_target: central01
+backup_directories:
+  - /etc
+  - /home
+  - /var/log
+
+# Architecture specific variables will be defined in the respective architecture group vars

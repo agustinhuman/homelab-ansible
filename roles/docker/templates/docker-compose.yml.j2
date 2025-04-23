@@ -3,6 +3,7 @@ services:
   {% for service in compose_data %}
   {{ service.name }}:
     image: {{ service.image }}:{{ service.tag }}
+    restart: unless-stopped
     ports:
     {% for port in service.ports %}
       - "{{ port }}"

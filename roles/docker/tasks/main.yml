@@ -9,12 +9,33 @@
   tags:
     - docker-install
 
-- name: Handle composes
-  include_tasks: compose.yml
+- name: Mount NFS backup share
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: mount_util
   vars:
-    compose_data: "{{ docker_services[compose_name] }}"
-  loop: "{{ containers }}"
-  loop_control:
-    loop_var: compose_name
-  when: "compose_name in docker_services"
+    do_mount:
+      mount: "backups"
+      state: "mounted"
 
+- name: Docker compose loop
+
+  block:
+  - name: Handle composes
+    include_tasks: compose.yml
+    vars:
+      compose_data: "{{ docker_services[compose_name] }}"
+    loop: "{{ containers }}"
+    loop_control:
+      loop_var: compose_name
+    when: "compose_name in docker_services"
+
+  always:
+  - name: Mount NFS backup share
+    ansible.builtin.include_role:
+      name: common
+      tasks_from: mount_util
+    vars:
+      do_mount:
+        mount: "backups"
+        state: "unmounted"

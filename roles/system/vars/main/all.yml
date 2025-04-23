@@ -1,9 +1,0 @@
-# Stale
-admin_users:
-  - username: "{{ ansible_admin_username }}"
-    keys: "{{ ansible_admin_pub_keys }}"
-    known_hosts: "{{ known_hosts }}"
-
-  - username: "{{ username }}"
-    keys: "{{ admin_pub_keys }}"
-    known_hosts: "{{ known_hosts }}"
